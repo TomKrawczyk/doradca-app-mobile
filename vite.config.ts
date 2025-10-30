@@ -6,7 +6,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: '/prezentacja_doradca/',
+  base: '/doradca-app-mobile/',
   server: {
     host: "::",
     port: 8080,
@@ -25,8 +25,8 @@ export default defineConfig(({ mode }) => ({
         background_color: '#1a2332',
         display: 'standalone',
         orientation: 'portrait',
-        scope: '/',
-        start_url: '/',
+        scope: '/doradca-app-mobile/',
+        start_url: '/doradca-app-mobile/',
         icons: [
           {
             src: '/icon-192.png',

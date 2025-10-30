@@ -20,7 +20,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <PWAInstallPrompt />
-      <BrowserRouter basename="/prezentacja_doradca">
+      <BrowserRouter basename="/doradca-app-mobile">
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/about" element={<AboutCompany />} />

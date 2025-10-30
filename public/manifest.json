@@ -6,8 +6,8 @@
   "background_color": "#1a2332",
   "display": "standalone",
   "orientation": "portrait",
-  "scope": "/",
-  "start_url": "/",
+  "scope": "/prezentacja_doradca/",
+  "start_url": "/prezentacja_doradca/",
   "icons": [
     {
       "src": "/icon-192.png",

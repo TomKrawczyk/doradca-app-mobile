@@ -6,7 +6,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: 'https://github.com/TomKrawczyk/prezentacja_doradca', // Zmień na nazwę swojego repo
+  base: 'tomkrawczyk.github.io/prezentacja_doradca', // Zmień na nazwę swojego repo
   server: {
     host: "::",
     port: 8080,

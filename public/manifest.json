@@ -1,13 +1,13 @@
 {
-  "name": "Doradca Fotowoltaiczny",
-  "short_name": "Doradca PV",
-  "description": "Aplikacja do obliczania oszczędności z fotowoltaiki",
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff",
+  "name": "4ECO - Instalacje Fotowoltaiczne",
+  "short_name": "4ECO PV",
+  "description": "Twoja droga do energetycznej niezależności. Informacje o instalacjach fotowoltaicznych, cenach prądu i oszczędnościach.",
+  "theme_color": "#00ff88",
+  "background_color": "#1a2332",
   "display": "standalone",
   "orientation": "portrait",
-  "start_url": "/prezentacja_doradca/",
-  "scope": "/prezentacja_doradca/",
+  "scope": "/",
+  "start_url": "/",
   "icons": [
     {
       "src": "/icon-192.png",
@@ -21,8 +21,5 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ],
-  "categories": ["business", "utilities"],
-  "lang": "pl-PL",
-  "dir": "ltr"
+  ]
 }

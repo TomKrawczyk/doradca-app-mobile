@@ -3,11 +3,15 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { Sun, AlertTriangle, TrendingUp, Battery, PartyPopper } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Sun, AlertTriangle, TrendingUp, Battery, PartyPopper, FileDown, Share2 } from "lucide-react";
+import { jsPDF } from "jspdf";
+import { useToast } from "@/hooks/use-toast";
 
 const AutoconsumptionCalculator = () => {
   const [energyProduced, setEnergyProduced] = useState<string>("");
   const [energyExported, setEnergyExported] = useState<string>("");
+  const { toast } = useToast();
 
   const { autoconsumptionLevel, energyConsumed, status } = useMemo(() => {
     const produced = parseFloat(energyProduced) || 0;
@@ -70,6 +74,86 @@ const AutoconsumptionCalculator = () => {
   };
 
   const statusConfig = getStatusConfig();
+
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    const date = new Date().toLocaleDateString("pl-PL");
+    
+    doc.setFontSize(20);
+    doc.setTextColor(0, 68, 102);
+    doc.text("4ECO - Raport Autokonsumpcji", 20, 20);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Wygenerowano: ${date}`, 20, 30);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text(`Energia wyprodukowana: ${energyProduced} kWh`, 20, 50);
+    doc.text(`Energia oddana do sieci: ${energyExported} kWh`, 20, 60);
+    doc.text(`Energia zużyta na własne potrzeby: ${energyConsumed.toLocaleString()} kWh`, 20, 70);
+    
+    doc.setFontSize(16);
+    doc.setTextColor(0, 68, 102);
+    doc.text(`Poziom autokonsumpcji: ${autoconsumptionLevel.toFixed(1)}%`, 20, 90);
+    
+    if (statusConfig) {
+      doc.setFontSize(14);
+      doc.setTextColor(status === "high" ? 0 : status === "medium" ? 180 : 200, status === "high" ? 128 : status === "medium" ? 120 : 0, 0);
+      doc.text(statusConfig.title, 20, 110);
+      
+      doc.setFontSize(11);
+      doc.setTextColor(60);
+      const messageLines = doc.splitTextToSize(statusConfig.message, 170);
+      doc.text(messageLines, 20, 120);
+      
+      if (statusConfig.recommendation) {
+        const recLines = doc.splitTextToSize(statusConfig.recommendation, 170);
+        doc.text(recLines, 20, 135);
+      }
+    }
+    
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text("Raport wygenerowany przez aplikację 4ECO Doradca Fotowoltaiki", 20, 280);
+    
+    doc.save(`autokonsumpcja-raport-${date.replace(/\./g, "-")}.pdf`);
+    toast({ title: "PDF zapisany!", description: "Raport został pobrany na Twoje urządzenie." });
+  };
+
+  const shareResults = async () => {
+    const shareText = `📊 Mój raport autokonsumpcji PV:
+    
+🔆 Energia wyprodukowana: ${energyProduced} kWh
+⚡ Energia oddana do sieci: ${energyExported} kWh
+🏠 Energia zużyta: ${energyConsumed.toLocaleString()} kWh
+📈 Poziom autokonsumpcji: ${autoconsumptionLevel.toFixed(1)}%
+
+${statusConfig?.title || ""}
+${statusConfig?.message || ""}
+
+Wygenerowano przez 4ECO Doradca Fotowoltaiki`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Raport Autokonsumpcji - 4ECO",
+          text: shareText,
+        });
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          copyToClipboard(shareText);
+        }
+      }
+    } else {
+      copyToClipboard(shareText);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({ title: "Skopiowano!", description: "Wyniki zostały skopiowane do schowka." });
+  };
 
   return (
     <Card className="p-6 bg-card border-border">
@@ -148,6 +232,17 @@ const AutoconsumptionCalculator = () => {
                 )}
               </div>
             )}
+
+            <div className="flex gap-2 pt-4">
+              <Button onClick={generatePDF} variant="outline" className="flex-1">
+                <FileDown className="h-4 w-4 mr-2" />
+                Zapisz PDF
+              </Button>
+              <Button onClick={shareResults} variant="outline" className="flex-1">
+                <Share2 className="h-4 w-4 mr-2" />
+                Udostępnij
+              </Button>
+            </div>
           </>
         )}
 

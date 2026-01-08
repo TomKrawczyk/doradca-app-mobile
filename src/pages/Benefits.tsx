@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, TrendingDown, Leaf, Coins, HelpCircle } from "lucide-react";
+import { ArrowLeft, TrendingDown, Leaf, Coins, HelpCircle, Calculator } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import AutoconsumptionCalculator from "@/components/AutoconsumptionCalculator";
+import DeviceUsageCalculator from "@/components/DeviceUsageCalculator";
 
 const Benefits = () => {
   const navigate = useNavigate();
@@ -87,6 +89,21 @@ const Benefits = () => {
               </Card>
             ))}
           </div>
+
+          {/* Kalkulatory */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-3 mb-4">
+              <Calculator className="h-8 w-8 text-primary" />
+              <h2 className="text-2xl font-bold text-primary">Kalkulatory</h2>
+            </div>
+            <p className="text-muted-foreground mb-6">
+              Sprawdź ile możesz zaoszczędzić i ile tracisz nie wykorzystując w pełni swojej instalacji PV
+            </p>
+          </div>
+
+          <AutoconsumptionCalculator />
+          
+          <DeviceUsageCalculator />
 
           <Card className="p-6 bg-card border-border">
             <h2 className="text-2xl font-bold text-primary mb-4">

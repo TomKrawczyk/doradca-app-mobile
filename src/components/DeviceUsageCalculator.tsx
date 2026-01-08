@@ -13,8 +13,12 @@ import {
   Zap,
   Plus,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  FileDown,
+  Share2
 } from "lucide-react";
+import { jsPDF } from "jspdf";
+import { useToast } from "@/hooks/use-toast";
 
 interface Device {
   id: string;
@@ -48,6 +52,7 @@ const DeviceUsageCalculator = () => {
   const [customName, setCustomName] = useState("");
   const [customPower, setCustomPower] = useState("");
   const [customHours, setCustomHours] = useState("");
+  const { toast } = useToast();
 
   const toggleDevice = (id: string) => {
     setDevices(devices.map(d => 
@@ -115,6 +120,90 @@ const DeviceUsageCalculator = () => {
   const netBillingRate = 0.45;
   const lossPerKwh = electricityPrice - netBillingRate;
   const yearlyLoss = potentialPvUsageYearly * lossPerKwh;
+
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    const date = new Date().toLocaleDateString("pl-PL");
+    
+    doc.setFontSize(20);
+    doc.setTextColor(0, 68, 102);
+    doc.text("4ECO - Raport Zużycia Urządzeń", 20, 20);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Wygenerowano: ${date}`, 20, 30);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text(`Cena prądu: ${electricityPrice.toFixed(2)} zł/kWh`, 20, 45);
+    doc.text(`Wybrane urządzenia:`, 20, 55);
+    
+    let yPos = 65;
+    selectedDevices.forEach((device) => {
+      doc.text(`• ${device.name}: ${device.power}W, ${device.hoursPerDay}h/dzień`, 25, yPos);
+      yPos += 8;
+    });
+    
+    yPos += 10;
+    doc.setFontSize(14);
+    doc.setTextColor(0, 68, 102);
+    doc.text(`Podsumowanie:`, 20, yPos);
+    
+    yPos += 12;
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text(`Dzienne zużycie: ${dailyUsageKwh.toFixed(1)} kWh`, 20, yPos);
+    doc.text(`Roczne zużycie: ${yearlyUsageKwh.toFixed(0)} kWh`, 20, yPos + 10);
+    
+    doc.setTextColor(0, 128, 0);
+    doc.text(`Potencjalne oszczędności z PV: ${savingsWithPv.toFixed(0)} zł/rok`, 20, yPos + 25);
+    
+    doc.setTextColor(200, 0, 0);
+    doc.text(`Strata bez autokonsumpcji: ${yearlyLoss.toFixed(0)} zł/rok`, 20, yPos + 35);
+    
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text("Raport wygenerowany przez aplikację 4ECO Doradca Fotowoltaiki", 20, 280);
+    
+    doc.save(`urzadzenia-raport-${date.replace(/\./g, "-")}.pdf`);
+    toast({ title: "PDF zapisany!", description: "Raport został pobrany na Twoje urządzenie." });
+  };
+
+  const shareResults = async () => {
+    const devicesList = selectedDevices.map(d => `• ${d.name}: ${d.power}W, ${d.hoursPerDay}h/dzień`).join("\n");
+    
+    const shareText = `📊 Mój raport zużycia urządzeń:
+
+📱 Wybrane urządzenia:
+${devicesList}
+
+⚡ Dzienne zużycie: ${dailyUsageKwh.toFixed(1)} kWh
+📅 Roczne zużycie: ${yearlyUsageKwh.toFixed(0)} kWh
+💰 Potencjalne oszczędności z PV: ${savingsWithPv.toFixed(0)} zł/rok
+❌ Strata bez autokonsumpcji: ${yearlyLoss.toFixed(0)} zł/rok
+
+Wygenerowano przez 4ECO Doradca Fotowoltaiki`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Raport Zużycia Urządzeń - 4ECO",
+          text: shareText,
+        });
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          copyToClipboard(shareText);
+        }
+      }
+    } else {
+      copyToClipboard(shareText);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({ title: "Skopiowano!", description: "Wyniki zostały skopiowane do schowka." });
+  };
 
   return (
     <Card className="p-6 bg-card border-border">
@@ -278,6 +367,17 @@ const DeviceUsageCalculator = () => {
                 gdy produkcja z paneli jest najwyższa. Rozważ także magazyn energii lub sterowniki 
                 inteligentne, które automatycznie włączają urządzenia podczas nadprodukcji.
               </p>
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <Button onClick={generatePDF} variant="outline" className="flex-1">
+                <FileDown className="h-4 w-4 mr-2" />
+                Zapisz PDF
+              </Button>
+              <Button onClick={shareResults} variant="outline" className="flex-1">
+                <Share2 className="h-4 w-4 mr-2" />
+                Udostępnij
+              </Button>
             </div>
           </div>
         )}

@@ -23,44 +23,28 @@ export const createPDFDocument = (config: PDFConfig) => {
   const margin = 20;
   const contentWidth = pageWidth - margin * 2;
   
-  // Nagłówek z logo
-  doc.setFillColor(0, 82, 122); // Ciemny niebieski 4ECO
-  doc.rect(0, 0, pageWidth, 45, 'F');
-  
-  // Logo 4ECO
-  doc.setFillColor(255, 193, 7); // Żółty akcent
-  doc.circle(margin + 12, 22, 10, 'F');
-  doc.setFontSize(14);
-  doc.setTextColor(0, 82, 122);
-  doc.text("4E", margin + 7, 25);
-  
-  doc.setFontSize(22);
-  doc.setTextColor(255, 255, 255);
-  doc.text("4ECO", margin + 28, 26);
-  
-  doc.setFontSize(10);
-  doc.setTextColor(200, 220, 230);
-  doc.text("Doradca Fotowoltaiki", margin + 28, 35);
+  // Prosty nagłówek z tytułem
+  doc.setFillColor(0, 82, 122);
+  doc.rect(0, 0, pageWidth, 35, 'F');
   
   // Tytuł raportu
-  doc.setFontSize(18);
+  doc.setFontSize(20);
   doc.setTextColor(255, 255, 255);
   const titleClean = removePolishChars(config.title);
-  doc.text(titleClean, pageWidth - margin, 28, { align: "right" });
+  doc.text(titleClean, margin, 22);
   
   // Data
-  doc.setFontSize(9);
-  doc.text(config.date, pageWidth - margin, 38, { align: "right" });
+  doc.setFontSize(10);
+  doc.setTextColor(200, 220, 230);
+  doc.text(config.date, pageWidth - margin, 22, { align: "right" });
   
   // Stopka
   const addFooter = () => {
     doc.setFillColor(245, 247, 250);
-    doc.rect(0, pageHeight - 20, pageWidth, 20, 'F');
+    doc.rect(0, pageHeight - 15, pageWidth, 15, 'F');
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    doc.text("Raport wygenerowany automatycznie przez aplikacje 4ECO Doradca Fotowoltaiki", pageWidth / 2, pageHeight - 12, { align: "center" });
-    doc.setTextColor(0, 82, 122);
-    doc.text("www.4eco.pl", pageWidth / 2, pageHeight - 6, { align: "center" });
+    doc.text("Raport wygenerowany przez aplikacje 4ECO", pageWidth / 2, pageHeight - 6, { align: "center" });
   };
   
   return {

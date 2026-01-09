@@ -124,46 +124,80 @@ const DeviceUsageCalculator = () => {
   const generatePDF = () => {
     const doc = new jsPDF();
     const date = new Date().toLocaleDateString("pl-PL");
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    const contentWidth = pageWidth - margin * 2;
     
-    doc.setFontSize(20);
+    // Logo 4ECO
+    doc.setFillColor(0, 68, 102);
+    doc.roundedRect(margin, 15, 50, 16, 3, 3, 'F');
+    doc.setFontSize(16);
+    doc.setTextColor(255, 255, 255);
+    doc.text("4ECO", margin + 25, 26, { align: "center" });
+    
+    // Tytuł
+    doc.setFontSize(18);
     doc.setTextColor(0, 68, 102);
-    doc.text("4ECO - Raport Zużycia Urządzeń", 20, 20);
+    doc.text("Raport Zuzycia Urzadzen", margin, 50);
     
+    // Linia pod tytułem
+    doc.setDrawColor(0, 68, 102);
+    doc.setLineWidth(0.5);
+    doc.line(margin, 55, pageWidth - margin, 55);
+    
+    // Data i cena
     doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Wygenerowano: ${date}`, 20, 30);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Data wygenerowania: ${date}`, margin, 65);
+    doc.text(`Cena pradu: ${electricityPrice.toFixed(2)} zl/kWh`, margin, 73);
     
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.text(`Cena prądu: ${electricityPrice.toFixed(2)} zł/kWh`, 20, 45);
-    doc.text(`Wybrane urządzenia:`, 20, 55);
-    
-    let yPos = 65;
-    selectedDevices.forEach((device) => {
-      doc.text(`• ${device.name}: ${device.power}W, ${device.hoursPerDay}h/dzień`, 25, yPos);
-      yPos += 8;
-    });
-    
-    yPos += 10;
+    // Wybrane urządzenia
     doc.setFontSize(14);
     doc.setTextColor(0, 68, 102);
-    doc.text(`Podsumowanie:`, 20, yPos);
+    doc.text("Wybrane urzadzenia:", margin, 90);
     
-    yPos += 12;
+    doc.setFontSize(10);
+    doc.setTextColor(50, 50, 50);
+    let yPos = 100;
+    selectedDevices.forEach((device) => {
+      const deviceText = `${device.name}: ${device.power}W, ${device.hoursPerDay}h/dzien`;
+      doc.text(deviceText, margin + 5, yPos);
+      yPos += 8;
+      if (yPos > 180) {
+        doc.addPage();
+        yPos = 30;
+      }
+    });
+    
+    // Podsumowanie
+    yPos = Math.max(yPos + 10, 150);
+    doc.setFillColor(240, 248, 255);
+    doc.roundedRect(margin, yPos, contentWidth, 45, 3, 3, 'F');
+    
     doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.text(`Dzienne zużycie: ${dailyUsageKwh.toFixed(1)} kWh`, 20, yPos);
-    doc.text(`Roczne zużycie: ${yearlyUsageKwh.toFixed(0)} kWh`, 20, yPos + 10);
+    doc.setTextColor(0, 68, 102);
+    doc.text("Podsumowanie:", margin + 5, yPos + 12);
     
-    doc.setTextColor(0, 128, 0);
-    doc.text(`Potencjalne oszczędności z PV: ${savingsWithPv.toFixed(0)} zł/rok`, 20, yPos + 25);
+    doc.setFontSize(11);
+    doc.setTextColor(50, 50, 50);
+    doc.text(`Dzienne zuzycie: ${dailyUsageKwh.toFixed(1)} kWh`, margin + 5, yPos + 24);
+    doc.text(`Roczne zuzycie: ${yearlyUsageKwh.toFixed(0)} kWh`, margin + 5, yPos + 34);
     
-    doc.setTextColor(200, 0, 0);
-    doc.text(`Strata bez autokonsumpcji: ${yearlyLoss.toFixed(0)} zł/rok`, 20, yPos + 35);
+    // Strata
+    yPos += 55;
+    doc.setFillColor(255, 230, 230);
+    doc.roundedRect(margin, yPos, contentWidth, 25, 3, 3, 'F');
+    doc.setFontSize(11);
+    doc.setTextColor(180, 0, 0);
+    doc.text("Strata bez autokonsumpcji:", margin + 5, yPos + 10);
+    doc.setFontSize(14);
+    doc.text(`${yearlyLoss.toFixed(0)} zl/rok`, margin + 5, yPos + 20);
     
-    doc.setFontSize(9);
-    doc.setTextColor(120);
-    doc.text("Raport wygenerowany przez aplikację 4ECO Doradca Fotowoltaiki", 20, 280);
+    // Stopka
+    doc.setFontSize(8);
+    doc.setTextColor(120, 120, 120);
+    doc.text("Raport wygenerowany przez aplikacje 4ECO Doradca Fotowoltaiki", pageWidth / 2, 280, { align: "center" });
+    doc.text("www.4eco.pl", pageWidth / 2, 287, { align: "center" });
     
     doc.save(`urzadzenia-raport-${date.replace(/\./g, "-")}.pdf`);
     toast({ title: "PDF zapisany!", description: "Raport został pobrany na Twoje urządzenie." });
@@ -336,15 +370,6 @@ Wygenerowano przez 4ECO Doradca Fotowoltaiki`;
               </div>
             </div>
 
-            <div className="bg-primary/10 rounded-lg p-4">
-              <p className="text-sm text-muted-foreground mb-2">
-                Jeśli włączysz te urządzenia w ciągu dnia (podczas produkcji PV):
-              </p>
-              <div className="flex justify-between items-center">
-                <span className="text-foreground">Oszczędzasz rocznie:</span>
-                <span className="text-primary font-bold text-xl">{savingsWithPv.toFixed(0)} zł</span>
-              </div>
-            </div>
 
             <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-3">

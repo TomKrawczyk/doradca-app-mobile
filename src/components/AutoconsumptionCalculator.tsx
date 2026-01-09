@@ -78,44 +78,82 @@ const AutoconsumptionCalculator = () => {
   const generatePDF = () => {
     const doc = new jsPDF();
     const date = new Date().toLocaleDateString("pl-PL");
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    const contentWidth = pageWidth - margin * 2;
     
-    doc.setFontSize(20);
-    doc.setTextColor(0, 68, 102);
-    doc.text("4ECO - Raport Autokonsumpcji", 20, 20);
-    
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Wygenerowano: ${date}`, 20, 30);
-    
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.text(`Energia wyprodukowana: ${energyProduced} kWh`, 20, 50);
-    doc.text(`Energia oddana do sieci: ${energyExported} kWh`, 20, 60);
-    doc.text(`Energia zużyta na własne potrzeby: ${energyConsumed.toLocaleString()} kWh`, 20, 70);
-    
+    // Logo 4ECO
+    doc.setFillColor(0, 68, 102);
+    doc.roundedRect(margin, 15, 50, 16, 3, 3, 'F');
     doc.setFontSize(16);
-    doc.setTextColor(0, 68, 102);
-    doc.text(`Poziom autokonsumpcji: ${autoconsumptionLevel.toFixed(1)}%`, 20, 90);
+    doc.setTextColor(255, 255, 255);
+    doc.text("4ECO", margin + 25, 26, { align: "center" });
     
+    // Tytuł
+    doc.setFontSize(18);
+    doc.setTextColor(0, 68, 102);
+    doc.text("Raport Autokonsumpcji", margin, 50);
+    
+    // Linia pod tytułem
+    doc.setDrawColor(0, 68, 102);
+    doc.setLineWidth(0.5);
+    doc.line(margin, 55, pageWidth - margin, 55);
+    
+    // Data
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Data wygenerowania: ${date}`, margin, 65);
+    
+    // Dane wejściowe
+    doc.setFontSize(14);
+    doc.setTextColor(0, 68, 102);
+    doc.text("Dane wejsciowe:", margin, 85);
+    
+    doc.setFontSize(11);
+    doc.setTextColor(50, 50, 50);
+    doc.text(`Energia wyprodukowana: ${energyProduced} kWh`, margin + 5, 95);
+    doc.text(`Energia oddana do sieci: ${energyExported} kWh`, margin + 5, 105);
+    doc.text(`Energia zuzyta na wlasne potrzeby: ${energyConsumed.toLocaleString()} kWh`, margin + 5, 115);
+    
+    // Wynik
+    doc.setFillColor(240, 248, 255);
+    doc.roundedRect(margin, 125, contentWidth, 30, 3, 3, 'F');
+    doc.setFontSize(14);
+    doc.setTextColor(0, 68, 102);
+    doc.text("Poziom autokonsumpcji:", margin + 10, 140);
+    doc.setFontSize(20);
+    doc.text(`${autoconsumptionLevel.toFixed(1)}%`, pageWidth - margin - 10, 143, { align: "right" });
+    
+    // Status
     if (statusConfig) {
-      doc.setFontSize(14);
-      doc.setTextColor(status === "high" ? 0 : status === "medium" ? 180 : 200, status === "high" ? 128 : status === "medium" ? 120 : 0, 0);
-      doc.text(statusConfig.title, 20, 110);
+      const statusY = 170;
+      const statusColor = status === "high" ? [0, 128, 0] : status === "medium" ? [180, 120, 0] : [200, 0, 0];
       
-      doc.setFontSize(11);
-      doc.setTextColor(60);
-      const messageLines = doc.splitTextToSize(statusConfig.message, 170);
-      doc.text(messageLines, 20, 120);
+      doc.setFillColor(statusColor[0], statusColor[1], statusColor[2]);
+      doc.roundedRect(margin, statusY, contentWidth, 8, 2, 2, 'F');
+      
+      doc.setFontSize(13);
+      doc.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
+      doc.text(statusConfig.title, margin, statusY + 20);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(60, 60, 60);
+      const messageLines = doc.splitTextToSize(statusConfig.message, contentWidth);
+      doc.text(messageLines, margin, statusY + 32);
       
       if (statusConfig.recommendation) {
-        const recLines = doc.splitTextToSize(statusConfig.recommendation, 170);
-        doc.text(recLines, 20, 135);
+        doc.setFontSize(10);
+        doc.setTextColor(80, 80, 80);
+        const recLines = doc.splitTextToSize("Zalecenie: " + statusConfig.recommendation, contentWidth);
+        doc.text(recLines, margin, statusY + 48);
       }
     }
     
-    doc.setFontSize(9);
-    doc.setTextColor(120);
-    doc.text("Raport wygenerowany przez aplikację 4ECO Doradca Fotowoltaiki", 20, 280);
+    // Stopka
+    doc.setFontSize(8);
+    doc.setTextColor(120, 120, 120);
+    doc.text("Raport wygenerowany przez aplikacje 4ECO Doradca Fotowoltaiki", pageWidth / 2, 280, { align: "center" });
+    doc.text("www.4eco.pl", pageWidth / 2, 287, { align: "center" });
     
     doc.save(`autokonsumpcja-raport-${date.replace(/\./g, "-")}.pdf`);
     toast({ title: "PDF zapisany!", description: "Raport został pobrany na Twoje urządzenie." });

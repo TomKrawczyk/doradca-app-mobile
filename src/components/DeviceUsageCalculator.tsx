@@ -17,7 +17,7 @@ import {
   FileDown,
   Share2
 } from "lucide-react";
-import { jsPDF } from "jspdf";
+import { createPDFDocument } from "@/lib/pdfGenerator";
 import { useToast } from "@/hooks/use-toast";
 
 interface Device {
@@ -122,84 +122,53 @@ const DeviceUsageCalculator = () => {
   const yearlyLoss = potentialPvUsageYearly * lossPerKwh;
 
   const generatePDF = () => {
-    const doc = new jsPDF();
     const date = new Date().toLocaleDateString("pl-PL");
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 20;
-    const contentWidth = pageWidth - margin * 2;
-    
-    // Logo 4ECO
-    doc.setFillColor(0, 68, 102);
-    doc.roundedRect(margin, 15, 50, 16, 3, 3, 'F');
-    doc.setFontSize(16);
-    doc.setTextColor(255, 255, 255);
-    doc.text("4ECO", margin + 25, 26, { align: "center" });
-    
-    // Tytuł
-    doc.setFontSize(18);
-    doc.setTextColor(0, 68, 102);
-    doc.text("Raport Zuzycia Urzadzen", margin, 50);
-    
-    // Linia pod tytułem
-    doc.setDrawColor(0, 68, 102);
-    doc.setLineWidth(0.5);
-    doc.line(margin, 55, pageWidth - margin, 55);
-    
-    // Data i cena
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Data wygenerowania: ${date}`, margin, 65);
-    doc.text(`Cena pradu: ${electricityPrice.toFixed(2)} zl/kWh`, margin, 73);
-    
-    // Wybrane urządzenia
-    doc.setFontSize(14);
-    doc.setTextColor(0, 68, 102);
-    doc.text("Wybrane urzadzenia:", margin, 90);
-    
-    doc.setFontSize(10);
-    doc.setTextColor(50, 50, 50);
-    let yPos = 100;
-    selectedDevices.forEach((device) => {
-      const deviceText = `${device.name}: ${device.power}W, ${device.hoursPerDay}h/dzien`;
-      doc.text(deviceText, margin + 5, yPos);
-      yPos += 8;
-      if (yPos > 180) {
-        doc.addPage();
-        yPos = 30;
-      }
+    const pdf = createPDFDocument({
+      title: "Raport Zuzycia Urzadzen",
+      date: date
     });
     
-    // Podsumowanie
-    yPos = Math.max(yPos + 10, 150);
-    doc.setFillColor(240, 248, 255);
-    doc.roundedRect(margin, yPos, contentWidth, 45, 3, 3, 'F');
+    let y = 60;
     
-    doc.setFontSize(12);
-    doc.setTextColor(0, 68, 102);
-    doc.text("Podsumowanie:", margin + 5, yPos + 12);
+    // Cena prądu
+    y = pdf.addField("Cena pradu", `${electricityPrice.toFixed(2)} zl/kWh`, y);
     
-    doc.setFontSize(11);
-    doc.setTextColor(50, 50, 50);
-    doc.text(`Dzienne zuzycie: ${dailyUsageKwh.toFixed(1)} kWh`, margin + 5, yPos + 24);
-    doc.text(`Roczne zuzycie: ${yearlyUsageKwh.toFixed(0)} kWh`, margin + 5, yPos + 34);
+    y += 5;
+    
+    // Sekcja urządzeń
+    y = pdf.addSection("Wybrane urzadzenia", y);
+    y = pdf.addDeviceList(selectedDevices.map(d => ({
+      name: d.name,
+      power: d.power,
+      hoursPerDay: d.hoursPerDay
+    })), y);
+    
+    y += 10;
+    
+    // Podsumowanie zużycia
+    y = pdf.addSection("Podsumowanie", y);
+    y = pdf.addResultBox(
+      "Dzienne zuzycie energii",
+      `${dailyUsageKwh.toFixed(1)} kWh`,
+      y
+    );
+    y = pdf.addResultBox(
+      "Roczne zuzycie energii",
+      `${yearlyUsageKwh.toFixed(0)} kWh`,
+      y
+    );
     
     // Strata
-    yPos += 55;
-    doc.setFillColor(255, 230, 230);
-    doc.roundedRect(margin, yPos, contentWidth, 25, 3, 3, 'F');
-    doc.setFontSize(11);
-    doc.setTextColor(180, 0, 0);
-    doc.text("Strata bez autokonsumpcji:", margin + 5, yPos + 10);
-    doc.setFontSize(14);
-    doc.text(`${yearlyLoss.toFixed(0)} zl/rok`, margin + 5, yPos + 20);
+    y = pdf.addResultBox(
+      "Strata bez autokonsumpcji (rocznie)",
+      `${yearlyLoss.toFixed(0)} zl`,
+      y,
+      [255, 235, 235],
+      [180, 50, 50]
+    );
     
-    // Stopka
-    doc.setFontSize(8);
-    doc.setTextColor(120, 120, 120);
-    doc.text("Raport wygenerowany przez aplikacje 4ECO Doradca Fotowoltaiki", pageWidth / 2, 280, { align: "center" });
-    doc.text("www.4eco.pl", pageWidth / 2, 287, { align: "center" });
-    
-    doc.save(`urzadzenia-raport-${date.replace(/\./g, "-")}.pdf`);
+    pdf.addFooter();
+    pdf.doc.save(`urzadzenia-raport-${date.replace(/\./g, "-")}.pdf`);
     toast({ title: "PDF zapisany!", description: "Raport został pobrany na Twoje urządzenie." });
   };
 

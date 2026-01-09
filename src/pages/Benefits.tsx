@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, TrendingDown, Leaf, Coins, HelpCircle, Calculator } from "lucide-react";
+import { ArrowLeft, TrendingDown, Leaf, Coins, HelpCircle, Calculator, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import AutoconsumptionCalculator from "@/components/AutoconsumptionCalculator";
 import DeviceUsageCalculator from "@/components/DeviceUsageCalculator";
+import VisitReportGenerator from "@/components/VisitReportGenerator";
 
 const Benefits = () => {
   const navigate = useNavigate();
@@ -105,31 +106,18 @@ const Benefits = () => {
           
           <DeviceUsageCalculator />
 
-          <Card className="p-6 bg-card border-border">
-            <h2 className="text-2xl font-bold text-primary mb-4">
-              Przykładowe Oszczędności
-            </h2>
-            <div className="space-y-4">
-              <div className="bg-muted/30 rounded-lg p-4">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-foreground">Instalacja 5 kW</span>
-                  <span className="text-primary font-bold">~3 000 zł/rok</span>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Oszczędności przy średniej produkcji
-                </div>
-              </div>
-              <div className="bg-muted/30 rounded-lg p-4">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-foreground">Instalacja 10 kW</span>
-                  <span className="text-primary font-bold">~6 000 zł/rok</span>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Oszczędności przy średniej produkcji
-                </div>
-              </div>
+          {/* Raport z wizyty */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-3 mb-4">
+              <FileText className="h-8 w-8 text-primary" />
+              <h2 className="text-2xl font-bold text-primary">Raporty</h2>
             </div>
-          </Card>
+            <p className="text-muted-foreground mb-6">
+              Generuj profesjonalne raporty dla klientów
+            </p>
+          </div>
+
+          <VisitReportGenerator />
 
           <Card className="p-6 bg-card border-border">
             <div className="flex items-center gap-3 mb-6">
